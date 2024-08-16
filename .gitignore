@@ -1,4 +1,3 @@
-
 *.raddbgi
 **/worlds
 data
@@ -59,3 +58,5 @@ google_trace.json
 build/*
 
 *google_trace*
+.vscode/settings.json
+original_images

@@ -44,9 +44,29 @@ void entity_destroy(Entity *entity)
 	memset(entity, 0, sizeof(Entity));
 }
 
+void setup_tank(Entity *en)
+{
+	en->arch = arch_tank;
+}
+
+void setup_edith(Entity *en)
+{
+	en->arch = arch_edith;
+}
+
+void setup_blossom(Entity *en)
+{
+	en->arch = arch_blossom;
+}
+
 void setup_veg(Entity *en)
 {
 	en->arch = arch_veg;
+}
+
+void setup_building(Entity *en)
+{
+	en->arch = arch_building;
 }
 
 int entry(int argc, char **argv)
@@ -62,15 +82,19 @@ int entry(int argc, char **argv)
 
 	float64 last_time = os_get_current_time_in_seconds();
 
-	Gfx_Image *player = load_image_from_disk(fixed_string("assets/tank.png"), get_heap_allocator());
-	assert(player, "Couldn't load player image");
-
+	Gfx_Image *tank = load_image_from_disk(fixed_string("assets/tank.png"), get_heap_allocator());
+	assert(tank, "Couldn't load tank image");
 	Gfx_Image *edith = load_image_from_disk(fixed_string("assets/edith_front.png"), get_heap_allocator());
 	Gfx_Image *blossom = load_image_from_disk(fixed_string("assets/blossom.png"), get_heap_allocator());
 	Gfx_Image *building = load_image_from_disk(fixed_string("assets/building.png"), get_heap_allocator());
 	Gfx_Image *veg = load_image_from_disk(fixed_string("assets/veg.png"), get_heap_allocator());
 
-	Entity *player_en = entity_create();
+	Entity *tank_en = entity_create();
+	setup_tank(tank_en);
+	Entity *edith_en = entity_create();
+	setup_edith(edith_en);
+	Entity *blossom_en = entity_create();
+	setup_blossom(blossom_en);
 
 	for (int i = 0; i < 10; i++)
 	{
@@ -78,7 +102,14 @@ int entry(int argc, char **argv)
 		setup_veg(en);
 		en->pos = v2(get_random_float32_in_range(-(window.pixel_width), window.pixel_width),
 					 get_random_float32_in_range(-(window.pixel_height), window.pixel_height));
-		// log("Veg at %.2f, %.2f", en->pos.x, en->pos.y);
+	}
+
+	for (int i = 0; i < 3; i++)
+	{
+		Entity *en = entity_create();
+		setup_building(en);
+		en->pos = v2(get_random_float32_in_range(-(window.pixel_width), window.pixel_width),
+					 get_random_float32_in_range(-(window.pixel_height), window.pixel_height));
 	}
 
 	while (!window.should_close)
@@ -109,11 +140,51 @@ int entry(int argc, char **argv)
 				{
 				case arch_veg:
 				{
+					log("Drawing veg from world entity %d", i);
 					Vector2 size = v2(63, 56);
 					Matrix4 xform = m4_scalar(1.0);
 					xform = m4_translate(xform, v3(en->pos.x, en->pos.y, 0));
-					// xform = m4_translate(xform, v3(size.x * -0.5, 0, 0));
 					draw_image_xform(veg, xform, size, COLOR_WHITE);
+					break;
+				}
+				case arch_building:
+				{
+					log("Drawing building from world entity %d", i);
+					Vector2 size = v2(422, 537);
+					Matrix4 xform = m4_scalar(1.0);
+					xform = m4_translate(xform, v3(en->pos.x, en->pos.y, 0));
+					draw_image_xform(building, xform, size, COLOR_WHITE);
+					break;
+				}
+				case arch_tank:
+				{
+					log("Drawing Tank from world entity %d", i);
+					Vector2 size = v2(409, 281);
+					Matrix4 xform = m4_scalar(1.0);
+					xform = m4_translate(xform, v3(en->pos.x, en->pos.y, 0));
+					xform = m4_translate(xform, v3(size.x * -0.5, 0, 0)); // offset the player to the middle on the x axis
+					draw_image_xform(tank, xform, size, COLOR_WHITE);
+					break;
+				}
+				case arch_edith:
+				{
+					log("Drawing Edith from world entity %d", i);
+					Vector2 size = v2(56, 79);
+					Matrix4 xform = m4_scalar(1.0);
+					xform = m4_translate(xform, v3(en->pos.x, en->pos.y, 0));
+					xform = m4_translate(xform, v3(size.x * -0.5, 0, 0)); // offset the player to the middle on the x axis
+					draw_image_xform(edith, xform, size, COLOR_WHITE);
+					break;
+				}
+				case arch_blossom:
+				{
+					log("Drawing Blossom");
+					Vector2 size = v2(30, 24);
+					Matrix4 xform = m4_scalar(1.0);
+					xform = m4_translate(xform, v3(en->pos.x, en->pos.y, 0));
+					xform = m4_translate(xform, v3(size.x * -0.5, 0, 0)); // offset the player to the middle on the x axis
+					draw_image_xform(blossom, xform, size, COLOR_WHITE);
+					break;
 				}
 				default:
 				{
@@ -141,15 +212,7 @@ int entry(int argc, char **argv)
 		}
 		input_axis = v2_normalize(input_axis);
 
-		player_en->pos = v2_add(player_en->pos, v2_mulf(input_axis, 1000.0 * delta_t));
-
-		{
-			Vector2 size = v2(409, 281);
-			Matrix4 xform = m4_scalar(1.0);
-			xform = m4_translate(xform, v3(player_en->pos.x, player_en->pos.y, 0));
-			xform = m4_translate(xform, v3(size.x * -0.5, 0, 0));
-			draw_image_xform(player, xform, size, COLOR_WHITE);
-		}
+		tank_en->pos = v2_add(tank_en->pos, v2_mulf(input_axis, 1000.0 * delta_t));
 
 		// float aspect = (f32)window.width / (f32)window.height;
 		// float mx = (input_frame.mouse_x / (f32)window.width * 2.0 - 1.0) * aspect;

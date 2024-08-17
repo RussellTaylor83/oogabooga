@@ -76,7 +76,9 @@ int entry(int argc, char **argv)
 	{
 		Entity *en = entity_create();
 		setup_veg(en);
-		en->pos = v2(i * 100.0, 0.0);
+		en->pos = v2(get_random_float32_in_range(-(window.pixel_width), window.pixel_width),
+					 get_random_float32_in_range(-(window.pixel_height), window.pixel_height));
+		// log("Veg at %.2f, %.2f", en->pos.x, en->pos.y);
 	}
 
 	while (!window.should_close)
